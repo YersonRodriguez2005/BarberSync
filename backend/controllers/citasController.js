@@ -131,16 +131,20 @@ const obtenerAgendaPeluquero = async (req, res) => {
   try {
     const citas = await pool.query(
       `
-  SELECT c.id, c.codigo_verificacion, c.inicio_esperado, c.fin_esperado, c.estado, 
-         u.nombre as cliente_nombre, u.telefono as cliente_telefono
-  FROM citas c
-  JOIN usuarios u ON c.cliente_id = u.id
-  WHERE c.peluquero_id = $1
-    AND DATE(inicio_esperado AT TIME ZONE 'America/Bogota') = 
-        CURRENT_DATE AT TIME ZONE 'America/Bogota'
-    AND estado NOT IN ('CANCELADA')
-  ORDER BY c.inicio_esperado ASC
-  `,
+      SELECT 
+        c.id, 
+        c.codigo_verificacion, 
+        c.inicio_esperado, 
+        c.fin_esperado, 
+        c.estado, 
+        u.nombre as cliente_nombre, 
+        u.telefono as cliente_telefono
+      FROM citas c
+      JOIN usuarios u ON c.cliente_id = u.id
+      WHERE c.peluquero_id = $1
+        AND c.estado NOT IN ('CANCELADA')
+      ORDER BY c.inicio_esperado ASC
+      `,
       [peluquero_id],
     );
 

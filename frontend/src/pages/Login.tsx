@@ -13,16 +13,15 @@ const Login: React.FC = () => {
   const history = useHistory();
 
 const handleLogin = async () => {
+  if (loading) return;
   setLoading(true);
-
   try {
     const resp = await api.post("/login", { email, password });
     const { token, user } = resp.data;
-    login(token, user); // Actualiza el contexto
-
-    // ✅ Navegación explícita según rol, sin depender del router
+    login(token, user);
     const destino = user.rol === "PELUQUERO" ? "/dashboard-peluquero" : "/dashboard-cliente";
-    history.replace(destino);
+    
+    window.location.replace(destino);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     const mensajeError = error.response?.data?.message || "Error al iniciar sesión";

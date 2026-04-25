@@ -50,7 +50,7 @@ const AgendarCita: React.FC = () => {
 
     let tiempoActual = aperturaH * 60 + aperturaM;
     const tiempoCierre = cierreH * 60 + cierreM;
-    const ultimoTurnoPosible = tiempoCierre - 30; // Restamos 30 min del cierre
+    const ultimoTurnoPosible = tiempoCierre - 10; // Restamos 30 min del cierre
 
     while (tiempoActual <= ultimoTurnoPosible) {
       const hStr = String(Math.floor(tiempoActual / 60)).padStart(2, "0");
@@ -158,7 +158,7 @@ const AgendarCita: React.FC = () => {
       const inicioString = `${year}-${month}-${day}T${horas}:${minutos}:00`;
 
       // Calcular fin sumando 30 min al string, no al objeto Date
-      const minutosTotal = parseInt(horas) * 60 + parseInt(minutos) + 30;
+      const minutosTotal = parseInt(horas) * 60 + parseInt(minutos) + 10;
       const finH = String(Math.floor(minutosTotal / 60)).padStart(2, "0");
       const finM = String(minutosTotal % 60).padStart(2, "0");
       const finString = `${year}-${month}-${day}T${finH}:${finM}:00`;
@@ -184,7 +184,7 @@ const AgendarCita: React.FC = () => {
         color: "success",
         position: "top",
       });
-      history.push("/dashboard-cliente");
+      history.replace("/dashboard-cliente");
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       const mensaje =
@@ -210,7 +210,7 @@ const AgendarCita: React.FC = () => {
           {/* Header */}
           <div className="px-6 pt-14 pb-6 flex items-center gap-4">
             <button
-              onClick={() => history.push("/dashboard-cliente")}
+              onClick={() => history.replace('/dashboard-cliente')}
               className="w-10 h-10 flex items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 text-zinc-400 active:text-amber-500 transition-colors flex-shrink-0"
             >
               <LuChevronLeft className="text-lg" />

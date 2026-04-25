@@ -2,7 +2,6 @@
 const jwt = require('jsonwebtoken');
 
 const verificarToken = (req, res, next) => {
-  // El frontend enviará el token en el header de la petición
   const token = req.header('Authorization');
 
   if (!token) {
@@ -10,18 +9,17 @@ const verificarToken = (req, res, next) => {
   }
 
   try {
-    // El formato suele ser "Bearer eyJhbGci..." así que quitamos la palabra Bearer
     const tokenLimpio = token.replace('Bearer ', '');
-    
-    // Verificamos el token con nuestra clave secreta
     const decodificado = jwt.verify(tokenLimpio, process.env.JWT_SECRET);
-    
-    // Inyectamos los datos del usuario en la request para que el controlador los pueda usar
-    req.user = decodificado; 
-    
-    next(); // Pasa al siguiente middleware o controlador
+    req.user = decodificado;
+    next();
   } catch (error) {
-    res.status(400).json({ message: 'Token inválido o expirado' });
+    // FIX: 401 en vez de 400 — semánticamente correcto y más fácil de interceptar
+    return res.status(401).json({ 
+      message: error.name === 'TokenExpiredError' 
+        ? 'Sesión expirada. Por favor inicia sesión nuevamente.' 
+        : 'Token inválido.' 
+    });
   }
 };
 

@@ -30,7 +30,7 @@ const DashboardCliente: React.FC = () => {
   const history = useHistory();
   const [presentAlert] = useIonAlert();
   const [presentToast] = useIonToast();
-  const [botonHabilitado, setBotonHabilitado] = useState(false);
+  const [ctaHabilitado, setCtaHabilitado] = useState(false);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [citas, setCitas] = useState<any[]>([]);
@@ -49,14 +49,13 @@ const DashboardCliente: React.FC = () => {
   };
 
   useIonViewWillEnter(() => {
-    setBotonHabilitado(false);
+    setCtaHabilitado(false);
     cargarCitas();
   });
 
   useIonViewDidEnter(() => {
-  // Esperar 400ms después de que la animación termine
-  setTimeout(() => setBotonHabilitado(true), 400);
-});
+    setTimeout(() => setCtaHabilitado(true), 350);
+  });
 
   const handleRefresh = async (event: CustomEvent) => {
     await cargarCitas();
@@ -65,7 +64,7 @@ const DashboardCliente: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    history.push("/login");
+    window.location.replace("/login");
   };
 
   const handleCancelar = (citaId: string) => {
@@ -167,7 +166,9 @@ const DashboardCliente: React.FC = () => {
               <p className="text-zinc-600 text-xs mt-0.5">
                 {citas.length === 0
                   ? "Sin reservas activas"
-                  : `${citas.length} ${citas.length === 1 ? "reserva" : "reservas"} activa${citas.length !== 1 ? "s" : ""}`}
+                  : `${citas.length} ${
+                      citas.length === 1 ? "reserva" : "reservas"
+                    } activa${citas.length !== 1 ? "s" : ""}`}
               </p>
             </div>
             {/* Boton de configuración usuario */}
@@ -419,8 +420,8 @@ const DashboardCliente: React.FC = () => {
             }}
           >
             <button
-              onClick={() => botonHabilitado && history.push("/agendar")}
-              disabled={!botonHabilitado}
+              onClick={() => history.replace("/agendar")}
+              disabled={!ctaHabilitado}
               className="w-full flex items-center justify-between px-6 rounded-2xl font-bold text-black active:scale-95 transition-transform"
               style={{
                 height: "58px",
