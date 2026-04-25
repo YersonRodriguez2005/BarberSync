@@ -131,12 +131,16 @@ const obtenerAgendaPeluquero = async (req, res) => {
   try {
     const citas = await pool.query(
       `
-      SELECT c.id, c.codigo_verificacion, c.inicio_esperado, c.fin_esperado, c.estado, u.nombre as cliente_nombre, u.telefono as cliente_telefono
-      FROM citas c
-      JOIN usuarios u ON c.cliente_id = u.id
-      WHERE c.peluquero_id = $1 
-      ORDER BY c.inicio_esperado ASC
-    `,
+  SELECT c.id, c.codigo_verificacion, c.inicio_esperado, c.fin_esperado, c.estado, 
+         u.nombre as cliente_nombre, u.telefono as cliente_telefono
+  FROM citas c
+  JOIN usuarios u ON c.cliente_id = u.id
+  WHERE c.peluquero_id = $1
+    AND DATE(inicio_esperado AT TIME ZONE 'America/Bogota') = 
+        CURRENT_DATE AT TIME ZONE 'America/Bogota'
+    AND estado NOT IN ('CANCELADA')
+  ORDER BY c.inicio_esperado ASC
+  `,
       [peluquero_id],
     );
 
@@ -169,9 +173,11 @@ const obtenerDisponibilidad = async (req, res) => {
     // 2. Consultar las citas ya agendadas (la lógica que ya tenías)
     const citas = await pool.query(
       `
-      SELECT inicio_esperado FROM citas 
-      WHERE peluquero_id = $1 AND DATE(inicio_esperado) = $2 AND estado IN ('AGENDADA', 'EN_PROGRESO')
-    `,
+  SELECT inicio_esperado FROM citas 
+  WHERE peluquero_id = $1 
+    AND DATE(inicio_esperado AT TIME ZONE 'America/Bogota') = $2 
+    AND estado IN ('AGENDADA', 'EN_PROGRESO')
+  `,
       [peluquero_id, fecha],
     );
 
@@ -215,12 +221,10 @@ const cancelarCita = async (req, res) => {
     );
 
     if (resultado.rowCount === 0) {
-      return res
-        .status(404)
-        .json({
-          message:
-            "No se pudo cancelar. La cita no existe o ya no está disponible.",
-        });
+      return res.status(404).json({
+        message:
+          "No se pudo cancelar. La cita no existe o ya no está disponible.",
+      });
     }
 
     res.status(200).json({ message: "Cita cancelada exitosamente" });
@@ -262,11 +266,9 @@ const reagendarCita = async (req, res) => {
     );
 
     if (choque.rows.length > 0) {
-      return res
-        .status(409)
-        .json({
-          message: "El horario seleccionado ya fue ocupado por otra persona.",
-        });
+      return res.status(409).json({
+        message: "El horario seleccionado ya fue ocupado por otra persona.",
+      });
     }
 
     // 3. Si está libre, aplicamos el cambio
@@ -280,12 +282,10 @@ const reagendarCita = async (req, res) => {
       [inicio_esperado, fin_esperado, cita_id],
     );
 
-    res
-      .status(200)
-      .json({
-        message: "Cita reagendada exitosamente",
-        cita: resultado.rows[0],
-      });
+    res.status(200).json({
+      message: "Cita reagendada exitosamente",
+      cita: resultado.rows[0],
+    });
   } catch (error) {
     console.error("Error reagendando cita:", error);
     res.status(500).json({ message: "Error interno al reagendar la cita" });

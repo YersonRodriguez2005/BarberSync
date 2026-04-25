@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">BarberSync</string>
+    <string name="title_activity_main">BarberSync</string>
+    <string name="package_name">com.barbersync.app</string>
+    <string name="custom_url_scheme">com.barbersync.app</string>
+</resources>
