@@ -9,14 +9,14 @@
 <br>
 
 | Dashboard Barbero | Configuración de Horario | Agenda del Cliente |
-|:-----------------:|:------------------------:|:-----------------:|
-| `./assets/dashboard-peluquero.png` | `./assets/configuracion-historial.png` | `./assets/dashboard-cliente.png` |
+|:---:|:---:|:---:|
+| <img src="./assets/dashboard-peluquero.png" alt="Dashboard Barbero" width="250"/> | <img src="./assets/configuracion-historial.png" alt="Configuración de Horario" width="250"/> | <img src="./assets/dashboard-cliente.png" alt="Agenda del Cliente" width="250"/> |
 
 <br>
 
 | Historial de Cortes | Agendar Turno |
-|:-------------------:|:-------------:|
-| `./assets/dashboard-peluquero-citas.png` | `./assets/agendar-cita.png` |
+|:---:|:---:|
+| <img src="./assets/dashboard-peluquero-citas.png" alt="Historial de Cortes" width="250"/> | <img src="./assets/agendar-cita.png" alt="Agendar Turno" width="250"/> |
 
 <br>
 
