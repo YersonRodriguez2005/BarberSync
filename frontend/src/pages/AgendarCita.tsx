@@ -13,6 +13,7 @@ import {
   LuScissors,
   LuChevronRight,
   LuCoffee,
+  LuLoader,
 } from "react-icons/lu";
 import { useHistory } from "react-router-dom";
 import { citasService } from "../services/citasService";
@@ -31,7 +32,6 @@ const AgendarCita: React.FC = () => {
   const [horaSel, setHoraSel] = useState<string | null>(null);
   const [horasOcupadas, setHorasOcupadas] = useState<string[]>([]);
 
-  // NUEVOS ESTADOS PARA HORARIO DINÁMICO
   const [diaLaboral, setDiaLaboral] = useState<boolean>(true);
   const [horarioApertura, setHorarioApertura] = useState<string>("10:00");
   const [horarioCierre, setHorarioCierre] = useState<string>("20:00");
@@ -50,7 +50,7 @@ const AgendarCita: React.FC = () => {
 
     let tiempoActual = aperturaH * 60 + aperturaM;
     const tiempoCierre = cierreH * 60 + cierreM;
-    const ultimoTurnoPosible = tiempoCierre - 10; // Restamos 30 min del cierre
+    const ultimoTurnoPosible = tiempoCierre - 10; 
 
     while (tiempoActual <= ultimoTurnoPosible) {
       const hStr = String(Math.floor(tiempoActual / 60)).padStart(2, "0");
@@ -148,16 +148,13 @@ const AgendarCita: React.FC = () => {
     if (!puedeAgendar) return;
     setCargando(true);
     try {
-      // FIX: Construir el string de fecha en hora local, NO con toISOString()
       const year = fechaSel!.getFullYear();
       const month = String(fechaSel!.getMonth() + 1).padStart(2, "0");
       const day = String(fechaSel!.getDate()).padStart(2, "0");
       const [horas, minutos] = horaSel!.split(":");
 
-      // Formato ISO local sin conversión UTC: "2025-04-25T10:00:00"
       const inicioString = `${year}-${month}-${day}T${horas}:${minutos}:00`;
 
-      // Calcular fin sumando 30 min al string, no al objeto Date
       const minutosTotal = parseInt(horas) * 60 + parseInt(minutos) + 10;
       const finH = String(Math.floor(minutosTotal / 60)).padStart(2, "0");
       const finM = String(minutosTotal % 60).padStart(2, "0");
@@ -166,7 +163,7 @@ const AgendarCita: React.FC = () => {
       await NotificationService.requestPermission();
       const res = await citasService.agendarCita({
         peluquero_id: peluqueroSel.id,
-        inicio_esperado: inicioString, // "2025-04-25T10:00:00" sin Z
+        inicio_esperado: inicioString,
         fin_esperado: finString,
       });
 
@@ -185,11 +182,9 @@ const AgendarCita: React.FC = () => {
         position: "top",
       });
       history.replace("/dashboard-cliente");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      const mensaje =
-        error.response?.data?.message ||
-        "Error al agendar el turno. Intenta de nuevo.";
+      const mensaje = error.response?.data?.message || "Error al agendar el turno. Intenta de nuevo.";
       presentToast({ message: mensaje, duration: 4000, color: "danger" });
     } finally {
       setCargando(false);
@@ -200,37 +195,38 @@ const AgendarCita: React.FC = () => {
 
   return (
     <IonPage>
-      <IonContent scrollY={true}>
-        <div
-          className="min-h-full flex flex-col"
-          style={{
-            background: "linear-gradient(180deg, #0a0a0a 0%, #111 100%)",
-          }}
-        >
-          {/* Header */}
-          <div className="px-6 pt-14 pb-6 flex items-center gap-4">
+      <IonContent scrollY={true} className="bg-[#0a0a0c]">
+        <div className="relative min-h-full flex flex-col overflow-x-hidden">
+          
+          {/* Luces Ambientales (Orbes GPU) */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-amber-600/10 rounded-full blur-[90px] pointer-events-none animate-glow-pulse" />
+          <div className="absolute top-[40%] -left-20 w-72 h-72 bg-zinc-600/5 rounded-full blur-[80px] pointer-events-none" />
+
+          {/* ========================================================== */}
+          {/* HEADER Y NAVEGACIÓN */}
+          {/* ========================================================== */}
+          <div className="relative z-10 px-6 pt-14 pb-6 flex items-center gap-4 animate-slide-up">
             <button
               onClick={() => history.replace('/dashboard-cliente')}
-              className="w-10 h-10 flex items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 text-zinc-400 active:text-amber-500 transition-colors flex-shrink-0"
+              className="flex items-center justify-center w-11 h-11 rounded-2xl border border-zinc-800/80 bg-[#121215] text-zinc-400 active:scale-95 active:text-amber-400 transition-all shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.02),inset_2px_2px_6px_rgba(0,0,0,0.8)] flex-shrink-0"
             >
-              <LuChevronLeft className="text-lg" />
+              <LuChevronLeft className="text-xl" />
             </button>
             <div>
-              <h1
-                className="text-2xl font-black text-white leading-tight"
-                style={{ fontFamily: "'Georgia', serif" }}
-              >
+              <h1 className="text-2xl sm:text-3xl font-black text-white leading-tight font-serif tracking-tight">
                 Nueva Cita
               </h1>
-              <p className="text-zinc-600 text-xs">Paso {paso} de 3</p>
+              <p className="text-amber-500/80 font-bold text-xs uppercase tracking-widest mt-1">
+                Paso {paso} de 3
+              </p>
             </div>
           </div>
 
-          {/* Progress bar */}
-          <div className="px-6 mb-8">
-            <div className="h-1 bg-zinc-800 rounded-full overflow-hidden">
+          {/* Barra de Progreso Neumórfica (Inset shadow) */}
+          <div className="relative z-10 px-6 mb-8 animate-slide-up" style={{ animationDelay: '50ms' }}>
+            <div className="h-1.5 bg-[#121215] rounded-full overflow-hidden shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8)]">
               <div
-                className="h-full rounded-full transition-all duration-500"
+                className="h-full rounded-full transition-all duration-500 ease-out shadow-[0_0_10px_rgba(245,158,11,0.5)]"
                 style={{
                   width: `${(paso / 3) * 100}%`,
                   background: "linear-gradient(90deg, #f59e0b, #d97706)",
@@ -239,70 +235,39 @@ const AgendarCita: React.FC = () => {
             </div>
           </div>
 
-          <div className="px-6 pb-36 space-y-10">
-            {/* PASO 1: Peluquero */}
-            <section>
-              <div className="flex items-center gap-2 mb-5">
-                <div
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black"
-                  style={{
-                    background:
-                      paso >= 1
-                        ? "linear-gradient(135deg, #f59e0b, #d97706)"
-                        : "rgba(255,255,255,0.05)",
-                    color: paso >= 1 ? "#000" : "#555",
-                  }}
-                >
+          <div className="relative z-10 pb-44 space-y-10">
+            {/* ========================================================== */}
+            {/* PASO 1: SELECCIÓN DE PELUQUERO */}
+            {/* ========================================================== */}
+            <section className="animate-slide-up" style={{ animationDelay: '100ms' }}>
+              <div className="px-6 flex items-center gap-3 mb-5">
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${paso >= 1 ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-black' : 'bg-zinc-800 text-zinc-500'}`}>
                   1
                 </div>
-                <h2 className="text-base font-bold text-white flex items-center gap-2">
-                  <LuUser className="text-amber-500 text-sm" />
-                  ¿Con quién?
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <LuUser className="text-amber-500" /> ¿Con quién?
                 </h2>
               </div>
 
-              <div
-                className="flex gap-3 overflow-x-auto pb-2"
-                style={{ scrollbarWidth: "none" }}
-              >
+              <div className="flex gap-4 overflow-x-auto pb-4 px-6 snap-x snap-mandatory scrollbar-none" style={{ scrollbarWidth: "none" }}>
                 {peluqueros.map((pel) => {
                   const seleccionado = peluqueroSel?.id === pel.id;
                   return (
                     <div
                       key={pel.id}
                       onClick={() => setPeluqueroSel(pel)}
-                      className="flex-shrink-0 w-28 p-4 rounded-2xl text-center transition-all active:scale-95 cursor-pointer"
-                      style={{
-                        background: seleccionado
-                          ? "rgba(217,119,6,0.12)"
-                          : "rgba(255,255,255,0.03)",
-                        border: seleccionado
-                          ? "1.5px solid rgba(217,119,6,0.5)"
-                          : "1.5px solid rgba(255,255,255,0.06)",
-                        boxShadow: seleccionado
-                          ? "0 4px 20px rgba(217,119,6,0.15)"
-                          : "none",
-                      }}
+                      className={`snap-center flex-shrink-0 w-32 p-4 rounded-3xl text-center transition-all duration-300 cursor-pointer ${
+                        seleccionado 
+                          ? "bg-amber-500/10 border border-amber-500/40 shadow-[0_10px_25px_rgba(217,119,6,0.15)] scale-100" 
+                          : "bg-zinc-900/40 border border-white/5 backdrop-blur-sm active:scale-95 scale-95 opacity-80"
+                      }`}
                     >
-                      <div
-                        className="w-12 h-12 rounded-2xl mx-auto mb-3 flex items-center justify-center"
-                        style={{
-                          background: seleccionado
-                            ? "rgba(217,119,6,0.2)"
-                            : "rgba(255,255,255,0.05)",
-                        }}
-                      >
-                        <LuScissors
-                          className={`text-xl ${
-                            seleccionado ? "text-amber-500" : "text-zinc-600"
-                          }`}
-                        />
+                      <div className={`w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.02),inset_2px_2px_6px_rgba(0,0,0,0.8)] ${
+                        seleccionado ? "bg-amber-500/20 text-amber-400" : "bg-[#121215] text-zinc-600"
+                      }`}>
+                        <LuScissors className="text-2xl" />
                       </div>
-                      <p
-                        className={`font-bold text-xs leading-tight ${
-                          seleccionado ? "text-amber-400" : "text-zinc-400"
-                        }`}
-                      >
+                      <p className={`font-bold text-sm leading-tight capitalize ${seleccionado ? "text-amber-400" : "text-zinc-400"}`}>
                         {pel.nombre}
                       </p>
                     </div>
@@ -311,67 +276,37 @@ const AgendarCita: React.FC = () => {
               </div>
             </section>
 
-            {/* PASO 2: Fecha */}
-            <section
-              className={!peluqueroSel ? "opacity-30 pointer-events-none" : ""}
-            >
-              <div className="flex items-center gap-2 mb-5">
-                <div
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black"
-                  style={{
-                    background:
-                      paso >= 2
-                        ? "linear-gradient(135deg, #f59e0b, #d97706)"
-                        : "rgba(255,255,255,0.05)",
-                    color: paso >= 2 ? "#000" : "#555",
-                  }}
-                >
+            {/* ========================================================== */}
+            {/* PASO 2: SELECCIÓN DE FECHA */}
+            {/* ========================================================== */}
+            <section className={`animate-slide-up transition-opacity duration-500 ${!peluqueroSel ? "opacity-30 pointer-events-none grayscale" : ""}`} style={{ animationDelay: '200ms' }}>
+              <div className="px-6 flex items-center gap-3 mb-5">
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${paso >= 2 ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-black' : 'bg-zinc-800 text-zinc-500'}`}>
                   2
                 </div>
-                <h2 className="text-base font-bold text-white flex items-center gap-2">
-                  <LuCalendarDays className="text-amber-500 text-sm" />
-                  Elige la fecha
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <LuCalendarDays className="text-amber-500" /> Elige la fecha
                 </h2>
               </div>
 
-              <div
-                className="flex gap-3 overflow-x-auto pb-2"
-                style={{ scrollbarWidth: "none" }}
-              >
+              <div className="flex gap-3 overflow-x-auto pb-4 px-6 snap-x snap-mandatory scrollbar-none" style={{ scrollbarWidth: "none" }}>
                 {proximosDias.map((dia, idx) => {
                   const { nombre, numero } = formatearDia(dia);
-                  const seleccionado =
-                    fechaSel?.getDate() === dia.getDate() &&
-                    fechaSel?.getMonth() === dia.getMonth();
+                  const seleccionado = fechaSel?.getDate() === dia.getDate() && fechaSel?.getMonth() === dia.getMonth();
                   return (
                     <div
                       key={idx}
                       onClick={() => setFechaSel(dia)}
-                      className="flex-shrink-0 w-16 py-4 rounded-2xl text-center transition-all active:scale-95 cursor-pointer"
-                      style={{
-                        background: seleccionado
-                          ? "linear-gradient(145deg, #f59e0b, #d97706)"
-                          : "rgba(255,255,255,0.03)",
-                        border: seleccionado
-                          ? "1.5px solid #f59e0b"
-                          : "1.5px solid rgba(255,255,255,0.06)",
-                        boxShadow: seleccionado
-                          ? "0 4px 20px rgba(217,119,6,0.3)"
-                          : "none",
-                      }}
+                      className={`snap-center flex-shrink-0 w-20 py-4 rounded-3xl text-center transition-all duration-300 cursor-pointer ${
+                        seleccionado
+                          ? "bg-gradient-to-b from-amber-400 to-amber-600 border border-amber-400 shadow-[0_8px_20px_rgba(217,119,6,0.3)] scale-100"
+                          : "bg-[#121215] border border-zinc-800/80 shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.02),inset_2px_2px_6px_rgba(0,0,0,0.8)] scale-95 opacity-80 hover:opacity-100"
+                      }`}
                     >
-                      <p
-                        className={`text-xs font-bold uppercase mb-1 ${
-                          seleccionado ? "text-black/60" : "text-zinc-600"
-                        }`}
-                      >
+                      <p className={`text-xs font-bold uppercase mb-1 ${seleccionado ? "text-amber-950" : "text-zinc-500"}`}>
                         {nombre}
                       </p>
-                      <p
-                        className={`text-xl font-black ${
-                          seleccionado ? "text-black" : "text-white"
-                        }`}
-                      >
+                      <p className={`text-2xl font-black ${seleccionado ? "text-black" : "text-white"}`}>
                         {numero}
                       </p>
                     </div>
@@ -380,61 +315,39 @@ const AgendarCita: React.FC = () => {
               </div>
             </section>
 
-            {/* PASO 3: Hora */}
-            <section
-              className={!fechaSel ? "opacity-30 pointer-events-none" : ""}
-            >
+            {/* ========================================================== */}
+            {/* PASO 3: SELECCIÓN DE HORA */}
+            {/* ========================================================== */}
+            <section className={`px-6 animate-slide-up transition-opacity duration-500 ${!fechaSel ? "opacity-30 pointer-events-none grayscale" : ""}`} style={{ animationDelay: '300ms' }}>
               <div className="flex items-center justify-between mb-5">
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black"
-                    style={{
-                      background:
-                        paso >= 3
-                          ? "linear-gradient(135deg, #f59e0b, #d97706)"
-                          : "rgba(255,255,255,0.05)",
-                      color: paso >= 3 ? "#000" : "#555",
-                    }}
-                  >
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${paso >= 3 ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-black' : 'bg-zinc-800 text-zinc-500'}`}>
                     3
                   </div>
-                  <h2 className="text-base font-bold text-white flex items-center gap-2">
-                    <LuClock className="text-amber-500 text-sm" />
-                    Hora exacta
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                    <LuClock className="text-amber-500" /> Hora exacta
                   </h2>
                 </div>
                 {cargandoHoras && (
-                  <span className="text-amber-500 text-xs animate-pulse font-medium">
-                    Consultando...
-                  </span>
+                  <div className="flex items-center gap-2 text-amber-500 text-xs font-bold uppercase tracking-wider bg-amber-500/10 px-3 py-1.5 rounded-full border border-amber-500/20">
+                    <LuLoader className="animate-spin text-sm" /> Buscando...
+                  </div>
                 )}
               </div>
 
               {!diaLaboral ? (
-                <div
-                  className="p-6 rounded-2xl text-center text-sm font-medium flex flex-col items-center justify-center gap-3"
-                  style={{
-                    background: "rgba(255,255,255,0.02)",
-                    border: "1px dashed rgba(255,255,255,0.1)",
-                    color: "#888",
-                  }}
-                >
-                  <LuCoffee className="text-3xl text-zinc-600" />
-                  El peluquero descansa este día.
+                <div className="glass-card p-8 text-center border-dashed border-2 border-zinc-800/80 bg-zinc-900/20">
+                  <div className="w-16 h-16 mx-auto rounded-full bg-zinc-800/50 flex items-center justify-center mb-4">
+                    <LuCoffee className="text-3xl text-zinc-500" />
+                  </div>
+                  <p className="text-zinc-400 text-sm font-medium">El peluquero descansa este día.<br/>Por favor, selecciona otra fecha.</p>
                 </div>
               ) : horasVisibles.length === 0 && fechaSel ? (
-                <div
-                  className="p-4 rounded-2xl text-center text-sm font-medium"
-                  style={{
-                    background: "rgba(217,119,6,0.08)",
-                    border: "1px solid rgba(217,119,6,0.2)",
-                    color: "#d97706",
-                  }}
-                >
-                  No hay horarios disponibles para hoy. Selecciona otra fecha.
+                <div className="glass-card p-6 text-center border-amber-500/30 bg-amber-500/5">
+                  <p className="text-amber-500 text-sm font-bold">No hay horarios disponibles para hoy.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                   {horasVisibles.map((hora) => {
                     const ocupada = horasOcupadas.includes(hora);
                     const seleccionada = horaSel === hora;
@@ -444,28 +357,13 @@ const AgendarCita: React.FC = () => {
                         key={hora}
                         disabled={ocupada}
                         onClick={() => setHoraSel(hora)}
-                        className="py-3 rounded-xl text-xs font-bold transition-all active:scale-95"
-                        style={{
-                          background: ocupada
-                            ? "rgba(255,255,255,0.02)"
+                        className={`py-3.5 rounded-2xl text-sm font-bold transition-all duration-200 ${
+                          ocupada
+                            ? "bg-zinc-900/30 border border-transparent text-zinc-700 line-through cursor-not-allowed opacity-50"
                             : seleccionada
-                            ? "linear-gradient(135deg, #f59e0b, #d97706)"
-                            : "rgba(255,255,255,0.04)",
-                          border: ocupada
-                            ? "1px solid rgba(255,255,255,0.04)"
-                            : seleccionada
-                            ? "1px solid #f59e0b"
-                            : "1px solid rgba(255,255,255,0.08)",
-                          color: ocupada
-                            ? "#333"
-                            : seleccionada
-                            ? "#000"
-                            : "#aaa",
-                          textDecoration: ocupada ? "line-through" : "none",
-                          boxShadow: seleccionada
-                            ? "0 4px 16px rgba(217,119,6,0.3)"
-                            : "none",
-                        }}
+                            ? "bg-gradient-to-r from-amber-400 to-amber-600 border border-amber-400 text-black shadow-[0_4px_15px_rgba(217,119,6,0.3)] scale-105"
+                            : "bg-[#121215] border border-zinc-800/80 text-zinc-300 shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.02),inset_2px_2px_6px_rgba(0,0,0,0.8)] active:scale-95 hover:border-zinc-600"
+                        }`}
                       >
                         {hora}
                       </button>
@@ -476,33 +374,26 @@ const AgendarCita: React.FC = () => {
             </section>
           </div>
 
-          {/* CTA fijo */}
-          <div
-            className="fixed bottom-0 left-0 right-0 px-6 pb-8 pt-4"
-            style={{
-              background: "linear-gradient(to top, #0a0a0a 70%, transparent)",
-            }}
-          >
-            {/* Resumen de selección */}
+          {/* ========================================================== */}
+          {/* BOTTOM CTA FIJO (Resumen y Confirmación) */}
+          {/* ========================================================== */}
+          <div className="fixed bottom-0 left-0 right-0 px-6 pb-8 pt-6 bg-gradient-to-t from-[#0a0a0c] via-[#0a0a0c]/95 to-transparent backdrop-blur-sm z-30 transition-transform duration-300 translate-y-0">
+            
+            {/* Resumen de Selección Dinámico (Glass Card compacta) */}
             {puedeAgendar && (
-              <div
-                className="flex items-center justify-between px-4 py-3 rounded-2xl mb-3"
-                style={{
-                  background: "rgba(217,119,6,0.08)",
-                  border: "1px solid rgba(217,119,6,0.2)",
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <LuScissors className="text-amber-500 text-sm" />
-                  <span className="text-amber-400 text-xs font-medium capitalize">
+              <div className="glass-card mb-4 p-3.5 flex items-center justify-between border-amber-500/30 bg-amber-500/10 animate-slide-up shadow-[0_4px_20px_rgba(245,158,11,0.1)]">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                    <LuScissors className="text-amber-400 text-sm" />
+                  </div>
+                  <span className="text-amber-400 text-sm font-bold capitalize">
                     {peluqueroSel?.nombre}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <LuCalendarDays className="text-zinc-500 text-sm" />
-                  <span className="text-zinc-400 text-xs">
-                    {fechaSel?.getDate()}/{(fechaSel?.getMonth() ?? 0) + 1} ·{" "}
-                    {horaSel}
+                <div className="flex items-center gap-2 text-amber-500/80 text-xs font-mono font-bold bg-black/40 px-3 py-1.5 rounded-lg border border-amber-500/20">
+                  <LuCalendarDays className="text-sm" />
+                  <span>
+                    {fechaSel?.getDate()}/{(fechaSel?.getMonth() ?? 0) + 1} · {horaSel}
                   </span>
                 </div>
               </div>
@@ -511,28 +402,19 @@ const AgendarCita: React.FC = () => {
             <button
               disabled={!puedeAgendar || cargando}
               onClick={handleAgendar}
-              className="w-full flex items-center justify-between px-6 rounded-2xl font-bold transition-all active:scale-95 disabled:opacity-40"
-              style={{
-                height: "58px",
-                background: puedeAgendar
-                  ? "linear-gradient(135deg, #f59e0b, #d97706)"
-                  : "rgba(255,255,255,0.05)",
-                color: puedeAgendar ? "#000" : "#444",
-                boxShadow: puedeAgendar
-                  ? "0 8px 32px rgba(217,119,6,0.4)"
-                  : "none",
-              }}
+              className="soft-btn-primary h-14 w-full"
             >
-              <span className="text-sm tracking-wide">
-                {cargando ? "Procesando..." : "Confirmar Turno"}
+              <span className="text-sm font-extrabold tracking-wider uppercase">
+                {cargando ? "Asegurando turno..." : "Confirmar Turno"}
               </span>
               {puedeAgendar && !cargando && (
-                <div className="bg-black/15 rounded-xl p-1.5">
+                <div className="bg-black/20 rounded-xl p-2">
                   <LuChevronRight className="text-lg" />
                 </div>
               )}
             </button>
           </div>
+
         </div>
       </IonContent>
     </IonPage>

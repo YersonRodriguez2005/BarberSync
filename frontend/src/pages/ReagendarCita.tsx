@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { IonContent, IonPage, useIonToast } from '@ionic/react';
-import { LuCalendarDays, LuClock, LuChevronLeft, LuCalendarClock, LuCoffee, LuScissors } from 'react-icons/lu';
+import { 
+  LuCalendarDays, 
+  LuClock, 
+  LuChevronLeft, 
+  LuCalendarClock, 
+  LuCoffee, 
+  LuScissors,
+  LuLoader 
+} from 'react-icons/lu';
 import { useHistory, useLocation } from 'react-router-dom';
 import { citasService } from '../services/citasService';
 import { NotificationService } from '../services/notificationService';
@@ -115,15 +123,22 @@ const ReagendarCita: React.FC = () => {
     if (!puedeAgendar || !citaActual) return;
     setCargando(true);
     try {
-      const fechaInicio = new Date(fechaSel!);
-      const [horas, minutos] = horaSel!.split(':');
-      fechaInicio.setHours(parseInt(horas), parseInt(minutos), 0, 0);
-      const fechaFin = new Date(fechaInicio);
-      fechaFin.setMinutes(fechaFin.getMinutes() + 30);
+      const year = fechaSel.getFullYear();
+      const month = String(fechaSel.getMonth() + 1).padStart(2, "0");
+      const day = String(fechaSel.getDate()).padStart(2, "0");
+      const [horas, minutos] = horaSel.split(":");
+
+      // Preservamos el mismo comportamiento de fecha local que en AgendarCita
+      const inicioString = `${year}-${month}-${day}T${horas}:${minutos}:00`;
+
+      const minutosTotal = parseInt(horas) * 60 + parseInt(minutos) + 30; // 30 min por defecto
+      const finH = String(Math.floor(minutosTotal / 60)).padStart(2, "0");
+      const finM = String(minutosTotal % 60).padStart(2, "0");
+      const finString = `${year}-${month}-${day}T${finH}:${finM}:00`;
 
       const res = await citasService.reagendarCita(citaActual.id, {
-        inicio_esperado: fechaInicio.toISOString(),
-        fin_esperado: fechaFin.toISOString(),
+        inicio_esperado: inicioString,
+        fin_esperado: finString,
       });
 
       // Reprogramar notificación local
@@ -150,44 +165,57 @@ const ReagendarCita: React.FC = () => {
 
   return (
     <IonPage>
-      <IonContent scrollY={true}>
-        <div className="min-h-full flex flex-col" style={{ background: 'linear-gradient(180deg, #0a0a0a 0%, #111 100%)' }}>
+      <IonContent scrollY={true} className="bg-[#0a0a0c]">
+        <div className="relative min-h-full flex flex-col pb-10 overflow-x-hidden">
           
-          <div className="px-6 pt-14 pb-6 flex items-center gap-4">
+          {/* Luces Ambientales (Orbes GPU) */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-amber-600/10 rounded-full blur-[90px] pointer-events-none animate-glow-pulse" />
+          <div className="absolute top-[40%] -left-20 w-72 h-72 bg-zinc-600/5 rounded-full blur-[80px] pointer-events-none" />
+
+          {/* ========================================================== */}
+          {/* HEADER Y NAVEGACIÓN */}
+          {/* ========================================================== */}
+          <div className="relative z-10 px-6 pt-14 pb-6 flex items-center gap-4 animate-slide-up">
             <button
               onClick={() => history.push('/dashboard-cliente')}
-              className="w-10 h-10 flex items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 text-zinc-400 active:text-amber-500 transition-colors flex-shrink-0"
+              className="flex items-center justify-center w-11 h-11 rounded-2xl border border-zinc-800/80 bg-[#121215] text-zinc-400 active:scale-95 active:text-amber-400 transition-all shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.02),inset_2px_2px_6px_rgba(0,0,0,0.8)] flex-shrink-0"
             >
-              <LuChevronLeft className="text-lg" />
+              <LuChevronLeft className="text-xl" />
             </button>
             <div>
-              <h1 className="text-2xl font-black text-white leading-tight" style={{ fontFamily: "'Georgia', serif" }}>
+              <h1 className="text-2xl sm:text-3xl font-black text-white leading-tight font-serif tracking-tight">
                 Reagendar
               </h1>
-              <p className="text-zinc-600 text-xs">Modifica la fecha de tu reserva</p>
+              <p className="text-amber-500/80 font-bold text-xs uppercase tracking-widest mt-1">
+                Modifica tu reserva
+              </p>
             </div>
           </div>
 
-          <div className="px-6 pb-36 space-y-10">
-            {/* Información del Barbero actual bloqueado */}
-            <div className="p-4 rounded-2xl border border-zinc-800 bg-zinc-900/50 flex items-center gap-4">
-               <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center">
+          <div className="relative z-10 px-6 pb-36 space-y-10">
+            {/* ========================================================== */}
+            {/* INFORMACIÓN DEL BARBERO (Bloqueada - Glass Card) */}
+            {/* ========================================================== */}
+            <div className="glass-card p-4 flex items-center gap-4 animate-slide-up" style={{ animationDelay: '50ms' }}>
+               <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20 shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.02)]">
                  <LuScissors className="text-amber-500 text-xl" />
                </div>
                <div>
-                 <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Peluquero actual</p>
-                 <p className="text-white font-medium capitalize">{citaActual.peluquero_nombre}</p>
+                 <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Peluquero Asignado</p>
+                 <p className="text-zinc-200 font-medium capitalize mt-0.5">{citaActual.peluquero_nombre}</p>
                </div>
             </div>
 
+            {/* ========================================================== */}
             {/* SECCIÓN: Fecha */}
-            <section>
+            {/* ========================================================== */}
+            <section className="animate-slide-up" style={{ animationDelay: '150ms' }}>
               <div className="flex items-center gap-2 mb-5">
-                <h2 className="text-base font-bold text-white flex items-center gap-2">
-                  <LuCalendarDays className="text-amber-500 text-sm" /> Nueva fecha
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <LuCalendarDays className="text-amber-500" /> Nueva fecha
                 </h2>
               </div>
-              <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
+              <div className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-none" style={{ scrollbarWidth: 'none' }}>
                 {proximosDias.map((dia, idx) => {
                   const { nombre, numero } = formatearDia(dia);
                   const seleccionado = fechaSel?.getDate() === dia.getDate() && fechaSel?.getMonth() === dia.getMonth();
@@ -195,39 +223,48 @@ const ReagendarCita: React.FC = () => {
                     <div
                       key={idx}
                       onClick={() => setFechaSel(dia)}
-                      className="flex-shrink-0 w-16 py-4 rounded-2xl text-center transition-all active:scale-95 cursor-pointer"
-                      style={{
-                        background: seleccionado ? 'linear-gradient(145deg, #f59e0b, #d97706)' : 'rgba(255,255,255,0.03)',
-                        border: seleccionado ? '1.5px solid #f59e0b' : '1.5px solid rgba(255,255,255,0.06)',
-                      }}
+                      className={`snap-center flex-shrink-0 w-20 py-4 rounded-3xl text-center transition-all duration-300 cursor-pointer ${
+                        seleccionado
+                          ? "bg-gradient-to-b from-amber-400 to-amber-600 border border-amber-400 shadow-[0_8px_20px_rgba(217,119,6,0.3)] scale-100"
+                          : "bg-[#121215] border border-zinc-800/80 shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.02),inset_2px_2px_6px_rgba(0,0,0,0.8)] scale-95 opacity-80 hover:opacity-100"
+                      }`}
                     >
-                      <p className={`text-xs font-bold uppercase mb-1 ${seleccionado ? 'text-black/60' : 'text-zinc-600'}`}>{nombre}</p>
-                      <p className={`text-xl font-black ${seleccionado ? 'text-black' : 'text-white'}`}>{numero}</p>
+                      <p className={`text-xs font-bold uppercase mb-1 ${seleccionado ? "text-amber-950" : "text-zinc-500"}`}>{nombre}</p>
+                      <p className={`text-2xl font-black ${seleccionado ? "text-black" : "text-white"}`}>{numero}</p>
                     </div>
                   );
                 })}
               </div>
             </section>
 
+            {/* ========================================================== */}
             {/* SECCIÓN: Hora */}
-            <section className={!fechaSel ? 'opacity-30 pointer-events-none' : ''}>
+            {/* ========================================================== */}
+            <section className={`animate-slide-up transition-opacity duration-500 ${!fechaSel ? 'opacity-30 pointer-events-none grayscale' : ''}`} style={{ animationDelay: '250ms' }}>
               <div className="flex items-center justify-between mb-5">
-                <h2 className="text-base font-bold text-white flex items-center gap-2">
-                  <LuClock className="text-amber-500 text-sm" /> Nuevo horario
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <LuClock className="text-amber-500" /> Nuevo horario
                 </h2>
-                {cargandoHoras && <span className="text-amber-500 text-xs animate-pulse font-medium">Buscando...</span>}
+                {cargandoHoras && (
+                  <div className="flex items-center gap-2 text-amber-500 text-xs font-bold uppercase tracking-wider bg-amber-500/10 px-3 py-1.5 rounded-full border border-amber-500/20">
+                    <LuLoader className="animate-spin text-sm" /> Buscando...
+                  </div>
+                )}
               </div>
 
               {!diaLaboral ? (
-                 <div className="p-6 rounded-2xl text-center text-sm font-medium flex flex-col items-center justify-center gap-3" style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)', color: '#888' }}>
-                   <LuCoffee className="text-3xl text-zinc-600" /> El peluquero descansa este día.
+                 <div className="glass-card p-8 text-center border-dashed border-2 border-zinc-800/80 bg-zinc-900/20">
+                   <div className="w-16 h-16 mx-auto rounded-full bg-zinc-800/50 flex items-center justify-center mb-4">
+                     <LuCoffee className="text-3xl text-zinc-500" />
+                   </div>
+                   <p className="text-zinc-400 text-sm font-medium">El peluquero descansa este día.<br/>Por favor, selecciona otra fecha.</p>
                  </div>
               ) : horasVisibles.length === 0 && fechaSel ? (
-                <div className="p-4 rounded-2xl text-center text-sm font-medium" style={{ background: 'rgba(217,119,6,0.08)', border: '1px solid rgba(217,119,6,0.2)', color: '#d97706' }}>
-                  No hay horarios disponibles.
+                <div className="glass-card p-6 text-center border-amber-500/30 bg-amber-500/5">
+                  <p className="text-amber-500 text-sm font-bold">No hay horarios disponibles para hoy.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                   {horasVisibles.map((hora) => {
                     const ocupada = horasOcupadas.includes(hora);
                     const seleccionada = horaSel === hora;
@@ -236,13 +273,13 @@ const ReagendarCita: React.FC = () => {
                         key={hora}
                         disabled={ocupada}
                         onClick={() => setHoraSel(hora)}
-                        className="py-3 rounded-xl text-xs font-bold transition-all active:scale-95"
-                        style={{
-                          background: ocupada ? 'rgba(255,255,255,0.02)' : seleccionada ? 'linear-gradient(135deg, #f59e0b, #d97706)' : 'rgba(255,255,255,0.04)',
-                          border: ocupada ? '1px solid rgba(255,255,255,0.04)' : seleccionada ? '1px solid #f59e0b' : '1px solid rgba(255,255,255,0.08)',
-                          color: ocupada ? '#333' : seleccionada ? '#000' : '#aaa',
-                          textDecoration: ocupada ? 'line-through' : 'none',
-                        }}
+                        className={`py-3.5 rounded-2xl text-sm font-bold transition-all duration-200 ${
+                          ocupada
+                            ? "bg-zinc-900/30 border border-transparent text-zinc-700 line-through cursor-not-allowed opacity-50"
+                            : seleccionada
+                            ? "bg-gradient-to-r from-amber-400 to-amber-600 border border-amber-400 text-black shadow-[0_4px_15px_rgba(217,119,6,0.3)] scale-105"
+                            : "bg-[#121215] border border-zinc-800/80 text-zinc-300 shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.02),inset_2px_2px_6px_rgba(0,0,0,0.8)] active:scale-95 hover:border-zinc-600"
+                        }`}
                       >
                         {hora}
                       </button>
@@ -253,21 +290,22 @@ const ReagendarCita: React.FC = () => {
             </section>
           </div>
 
-          <div className="fixed bottom-0 left-0 right-0 px-6 pb-8 pt-4" style={{ background: 'linear-gradient(to top, #0a0a0a 70%, transparent)' }}>
+          {/* ========================================================== */}
+          {/* BOTTOM CTA FIJO */}
+          {/* ========================================================== */}
+          <div className="fixed bottom-0 left-0 right-0 px-6 pb-8 pt-4 bg-gradient-to-t from-[#0a0a0c] via-[#0a0a0c]/95 to-transparent backdrop-blur-sm z-30 transition-transform duration-300 translate-y-0">
             <button
               disabled={!puedeAgendar || cargando}
               onClick={handleReagendar}
-              className="w-full flex items-center justify-center px-6 rounded-2xl font-bold transition-all active:scale-95 disabled:opacity-40"
-              style={{
-                height: '58px',
-                background: puedeAgendar ? 'linear-gradient(135deg, #f59e0b, #d97706)' : 'rgba(255,255,255,0.05)',
-                color: puedeAgendar ? '#000' : '#444',
-              }}
+              className="soft-btn-primary h-14 w-full"
             >
-              <LuCalendarClock className="text-lg mr-2" />
-              <span className="text-sm tracking-wide">{cargando ? 'Procesando...' : 'Confirmar Reagendamiento'}</span>
+              <LuCalendarClock className="text-lg text-black/70 mr-2" />
+              <span className="text-sm font-extrabold tracking-wider uppercase flex-1 text-left">
+                {cargando ? 'Procesando...' : 'Confirmar Reagendamiento'}
+              </span>
             </button>
           </div>
+
         </div>
       </IonContent>
     </IonPage>

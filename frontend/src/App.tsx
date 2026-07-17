@@ -29,20 +29,25 @@ import './theme/variables.css';
 
 setupIonicReact();
 
-// ✅ Función pura, se llama siempre en render (no en el módulo)
-const getDashboard = (isAuthenticated: boolean, rol?: string) => {
+// Función pura para determinar el dashboard según el rol
+const getDashboard = (isAuthenticated: boolean, rol?: string): string => {
   if (!isAuthenticated) return '/login';
   return rol === 'PELUQUERO' ? '/dashboard-peluquero' : '/dashboard-cliente';
 };
 
-const ProtectedRoute: React.FC<{
+interface ProtectedRouteProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   component: React.ComponentType<any>;
   path: string;
   exact?: boolean;
-  // ✅ Agregamos allowedRoles para proteger por rol también
   allowedRoles?: string[];
-}> = ({ component: Component, allowedRoles, ...rest }) => {
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  component: Component,
+  allowedRoles,
+  ...rest
+}) => {
   const { isAuthenticated, user } = useAuth();
 
   return (
@@ -50,10 +55,10 @@ const ProtectedRoute: React.FC<{
       {...rest}
       render={(props) => {
         if (!isAuthenticated) return <Redirect to="/login" />;
-        // Si la ruta tiene roles permitidos y el usuario no es uno de ellos,
-        // lo mandamos a su dashboard correcto
-        if (allowedRoles && !allowedRoles.includes(user?.rol)) {
-          return <Redirect to={getDashboard(true, user?.rol)} />;
+        
+        // Validación de rol estricta
+        if (allowedRoles && user?.rol && !allowedRoles.includes(user.rol)) {
+          return <Redirect to={getDashboard(true, user.rol)} />;
         }
         return <Component {...props} />;
       }}
@@ -61,12 +66,14 @@ const ProtectedRoute: React.FC<{
   );
 };
 
-const PublicRoute: React.FC<{
+interface PublicRouteProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   component: React.ComponentType<any>;
   path: string;
   exact?: boolean;
-}> = ({ component: Component, ...rest }) => {
+}
+
+const PublicRoute: React.FC<PublicRouteProps> = ({ component: Component, ...rest }) => {
   const { isAuthenticated, user } = useAuth();
 
   return (
@@ -74,7 +81,6 @@ const PublicRoute: React.FC<{
       {...rest}
       render={(props) => {
         if (!isAuthenticated) return <Component {...props} />;
-        // ✅ Se evalúa en cada render, con el user ya actualizado
         return <Redirect to={getDashboard(true, user?.rol)} />;
       }}
     />
@@ -86,12 +92,12 @@ const AppRoutes: React.FC = () => {
 
   return (
     <IonReactRouter>
-      <IonRouterOutlet>
-        {/* Rutas públicas */}
+      <IonRouterOutlet className="bg-[#0a0a0c]">
+        {/* --- RUTAS PÚBLICAS --- */}
         <PublicRoute exact path="/login" component={Login} />
         <PublicRoute exact path="/register" component={Register} />
 
-        {/* ✅ Rutas protegidas con control de rol */}
+        {/* --- RUTAS PROTEGIDAS POR ROL --- */}
         <ProtectedRoute
           exact
           path="/dashboard-cliente"
@@ -110,21 +116,18 @@ const AppRoutes: React.FC = () => {
           component={AgendarCita}
           allowedRoles={['CLIENTE']}
         />
-
         <ProtectedRoute
           exact
           path="/configuracion-horario"
           component={ConfiguracionHorario}
           allowedRoles={['PELUQUERO']}
         />
-
         <ProtectedRoute
           exact
           path="/perfil"
           component={PerfilCliente}
           allowedRoles={['CLIENTE']}
         />
-
         <ProtectedRoute
           exact
           path="/reagendar"
@@ -132,12 +135,10 @@ const AppRoutes: React.FC = () => {
           allowedRoles={['CLIENTE']}
         />
 
-
-        {/* ✅ Ruta raíz: se evalúa en render con el estado actual */}
+        {/* --- REDIRECCIONES DE RAÍZ --- */}
         <Route exact path="/">
           <Redirect to={getDashboard(isAuthenticated, user?.rol)} />
         </Route>
-
         <Route exact path="/dashboard">
           <Redirect to={getDashboard(isAuthenticated, user?.rol)} />
         </Route>

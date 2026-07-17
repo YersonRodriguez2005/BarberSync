@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { IonContent, IonPage, useIonToast } from '@ionic/react';
-import { LuUser, LuMail, LuLock, LuSave, LuChevronLeft } from 'react-icons/lu';
+import { LuUser, LuMail, LuLock, LuSave, LuChevronLeft, LuLoader, LuScissors } from 'react-icons/lu';
 import { useHistory } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { usuariosService } from '../services/usuariosService';
@@ -8,7 +8,7 @@ import { usuariosService } from '../services/usuariosService';
 const PerfilCliente: React.FC = () => {
   const history = useHistory();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { user, login } = useAuth(); // Usaremos 'login' para actualizar el contexto con los nuevos datos
+  const { user, login } = useAuth();
   const [presentToast] = useIonToast();
 
   const [nombre, setNombre] = useState('');
@@ -16,7 +16,6 @@ const PerfilCliente: React.FC = () => {
   const [password, setPassword] = useState('');
   const [cargando, setCargando] = useState(false);
 
-  // Cargar datos actuales del usuario al montar
   useEffect(() => {
     if (user) {
       setNombre(user.nombre || '');
@@ -29,7 +28,6 @@ const PerfilCliente: React.FC = () => {
     setCargando(true);
 
     try {
-      // Enviamos password solo si el usuario escribió algo
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const payload: any = { nombre, email };
       if (password.trim() !== '') {
@@ -38,18 +36,12 @@ const PerfilCliente: React.FC = () => {
 
       const res = await usuariosService.actualizarPerfil(payload);
       
-      // Actualizamos el contexto global para que el Header y el Dashboard muestren el nuevo nombre
-      // Suponiendo que tu AuthContext guarda un token, si el backend te devuelve un nuevo token, guárdalo aquí.
-      // Si no, simplemente actualizamos el objeto 'user' en el LocalStorage y estado.
       const userData = { ...user, nombre: res.user.nombre, email: res.user.email };
       localStorage.setItem('user', JSON.stringify(userData));
       
-      presentToast({ message: 'Perfil actualizado con éxito', color: 'success', duration: 3000 });
+      presentToast({ message: 'Perfil actualizado con éxito', color: 'success', duration: 3000, position: 'top' });
       setPassword('');
       
-      // Opcional: Redirigir atrás
-      // history.push('/dashboard-cliente');
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       const mensaje = error.response?.data?.message || 'Error al actualizar el perfil';
@@ -61,93 +53,138 @@ const PerfilCliente: React.FC = () => {
 
   return (
     <IonPage>
-      <IonContent scrollY={true}>
-        <div className="min-h-full flex flex-col" style={{ background: 'linear-gradient(180deg, #0a0a0a 0%, #111 100%)' }}>
+      <IonContent scrollY={true} className="bg-[#0a0a0c]">
+        <div className="relative min-h-full flex flex-col pb-10 overflow-x-hidden">
           
-          <div className="px-6 pt-14 pb-6 flex items-center gap-4">
+          {/* ========================================================== */}
+          {/* ILUMINACIÓN AMBIENTAL (Orbes GPU) */}
+          {/* ========================================================== */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-amber-600/10 rounded-full blur-[90px] pointer-events-none animate-glow-pulse" />
+          <div className="absolute bottom-0 -left-20 w-80 h-80 bg-zinc-600/5 rounded-full blur-[80px] pointer-events-none" />
+
+          {/* ========================================================== */}
+          {/* HEADER Y NAVEGACIÓN */}
+          {/* ========================================================== */}
+          <div className="relative z-10 px-6 pt-14 pb-8 flex items-center gap-4 animate-slide-up">
             <button
               onClick={() => history.goBack()}
-              className="w-10 h-10 flex items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 text-zinc-400 active:text-amber-500 transition-colors flex-shrink-0"
+              className="flex items-center justify-center w-11 h-11 rounded-2xl border border-zinc-800/80 bg-[#121215] text-zinc-400 active:scale-95 active:text-amber-400 transition-all shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.02),inset_2px_2px_6px_rgba(0,0,0,0.8)] flex-shrink-0"
             >
-              <LuChevronLeft className="text-lg" />
+              <LuChevronLeft className="text-xl" />
             </button>
             <div>
-              <h1 className="text-2xl font-black text-white leading-tight" style={{ fontFamily: "'Georgia', serif" }}>
+              <div className="flex items-center gap-2 mb-1">
+                <LuScissors className="text-amber-500 text-xs" />
+                <span className="text-amber-500/70 text-xs tracking-[0.2em] uppercase font-semibold">
+                  Ajustes
+                </span>
+              </div>
+              <h1 className="text-3xl font-black text-white leading-tight font-serif tracking-tight">
                 Mi Perfil
               </h1>
-              <p className="text-zinc-600 text-xs">Actualiza tus datos personales</p>
             </div>
           </div>
 
-          <div className="px-6 pb-10">
-            <form onSubmit={handleGuardar} className="space-y-6">
+          {/* ========================================================== */}
+          {/* FORMULARIO (Glass Card + Soft Inset Inputs) */}
+          {/* ========================================================== */}
+          <div className="relative z-10 px-6 pb-10 animate-slide-up" style={{ animationDelay: '100ms' }}>
+            <div className="glass-card p-6 border-white/5">
               
-              {/* Campo Nombre */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider ml-1">Nombre Completo</label>
-                <div className="relative flex items-center">
-                  <LuUser className="absolute left-4 text-zinc-500 text-lg" />
-                  <input
-                    type="text"
-                    required
-                    value={nombre}
-                    onChange={(e) => setNombre(e.target.value)}
-                    className="w-full bg-zinc-900/50 border border-zinc-800 text-white rounded-2xl pl-12 pr-4 py-4 focus:outline-none focus:border-amber-500 focus:bg-zinc-900 transition-all"
-                    placeholder="Tu nombre"
-                  />
+              <div className="flex justify-center mb-8">
+                <div className="relative w-24 h-24 rounded-full bg-[#121215] border border-zinc-800 flex items-center justify-center shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.02),inset_2px_2px_6px_rgba(0,0,0,0.8)]">
+                  <LuUser className="text-4xl text-amber-500/50" />
+                  <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-emerald-500 border-2 border-[#121215] shadow-[0_0_10px_rgba(16,185,129,0.4)]" />
                 </div>
               </div>
 
-              {/* Campo Email */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider ml-1">Correo Electrónico</label>
-                <div className="relative flex items-center">
-                  <LuMail className="absolute left-4 text-zinc-500 text-lg" />
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-zinc-900/50 border border-zinc-800 text-white rounded-2xl pl-12 pr-4 py-4 focus:outline-none focus:border-amber-500 focus:bg-zinc-900 transition-all"
-                    placeholder="tucorreo@ejemplo.com"
-                  />
+              <form onSubmit={handleGuardar} className="space-y-5">
+                
+                {/* Campo Nombre */}
+                <div>
+                  <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 ml-1">
+                    Nombre Completo
+                  </label>
+                  <div className="soft-input-container h-14">
+                    <LuUser className="text-amber-500 text-lg flex-shrink-0 transition-transform duration-200 group-focus-within:scale-110" />
+                    <input
+                      type="text"
+                      required
+                      value={nombre}
+                      onChange={(e) => setNombre(e.target.value)}
+                      className="w-full bg-transparent outline-none text-white placeholder-zinc-600 text-sm font-medium"
+                      placeholder="Tu nombre completo"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              {/* Campo Contraseña */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider ml-1 flex justify-between">
-                  <span>Nueva Contraseña</span>
-                  <span className="text-zinc-700 text-[10px]">(Opcional)</span>
-                </label>
-                <div className="relative flex items-center">
-                  <LuLock className="absolute left-4 text-zinc-500 text-lg" />
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-zinc-900/50 border border-zinc-800 text-white rounded-2xl pl-12 pr-4 py-4 focus:outline-none focus:border-amber-500 focus:bg-zinc-900 transition-all"
-                    placeholder="Dejar en blanco para no cambiar"
-                  />
+                {/* Campo Email */}
+                <div>
+                  <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 ml-1">
+                    Correo Electrónico
+                  </label>
+                  <div className="soft-input-container h-14 opacity-70">
+                    <LuMail className="text-zinc-500 text-lg flex-shrink-0" />
+                    <input
+                      type="email"
+                      required
+                      readOnly
+                      value={email}
+                      className="w-full bg-transparent outline-none text-zinc-400 placeholder-zinc-600 text-sm font-medium cursor-not-allowed"
+                      placeholder="tucorreo@ejemplo.com"
+                    />
+                  </div>
+                  <p className="text-[10px] text-zinc-600 mt-1.5 ml-2 font-medium">
+                    El correo electrónico no puede modificarse.
+                  </p>
                 </div>
-              </div>
 
-              <button
-                type="submit"
-                disabled={cargando}
-                className="w-full mt-8 flex items-center justify-center gap-2 rounded-2xl font-bold text-black active:scale-95 transition-transform disabled:opacity-50"
-                style={{
-                  height: '58px',
-                  background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-                  boxShadow: '0 8px 32px rgba(217,119,6,0.3)',
-                }}
-              >
-                <LuSave className="text-lg" />
-                <span>{cargando ? 'Guardando...' : 'Guardar Cambios'}</span>
-              </button>
+                {/* Campo Contraseña */}
+                <div className="pt-2">
+                  <div className="flex justify-between items-end mb-1.5 ml-1 pr-1">
+                    <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                      Nueva Contraseña
+                    </label>
+                    <span className="text-amber-500/70 text-[10px] font-medium italic">Opcional</span>
+                  </div>
+                  <div className="soft-input-container h-14">
+                    <LuLock className="text-amber-500 text-lg flex-shrink-0 transition-transform duration-200 group-focus-within:scale-110" />
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full bg-transparent outline-none text-white placeholder-zinc-600 text-sm font-medium"
+                      placeholder="Dejar en blanco para conservar"
+                    />
+                  </div>
+                </div>
 
-            </form>
+                {/* Botón Guardar */}
+                <div className="pt-6">
+                  <button
+                    type="submit"
+                    disabled={cargando}
+                    className="soft-btn-primary h-14 w-full"
+                  >
+                    <span className="text-sm font-extrabold tracking-wider uppercase">
+                      {cargando ? 'Guardando...' : 'Guardar Cambios'}
+                    </span>
+                    {!cargando ? (
+                      <div className="bg-black/20 rounded-xl p-2">
+                        <LuSave className="text-lg" />
+                      </div>
+                    ) : (
+                      <div className="bg-black/20 rounded-xl p-2">
+                        <LuLoader className="text-lg animate-spin" />
+                      </div>
+                    )}
+                  </button>
+                </div>
+
+              </form>
+            </div>
           </div>
+
         </div>
       </IonContent>
     </IonPage>

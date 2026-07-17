@@ -20,6 +20,7 @@ import {
   LuHash,
   LuSettings,
   LuCalendarClock,
+  LuSparkles,
 } from "react-icons/lu";
 import { useAuth } from "../context/AuthContext";
 import { citasService } from "../services/citasService";
@@ -134,273 +135,214 @@ const DashboardCliente: React.FC = () => {
 
   return (
     <IonPage>
-      <IonContent scrollY={true}>
-        <div
-          className="min-h-full flex flex-col"
-          style={{
-            background: "linear-gradient(180deg, #0a0a0a 0%, #111 100%)",
-          }}
-        >
+      <IonContent scrollY={true} className="bg-[#0a0a0c]">
+        <div className="relative min-h-full flex flex-col pb-36 overflow-x-hidden">
+          
+          {/* Iluminación Ambiental (Orbes GPU) */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-amber-600/10 rounded-full blur-[90px] pointer-events-none animate-glow-pulse" />
+          <div className="absolute top-96 -left-20 w-72 h-72 bg-amber-900/10 rounded-full blur-[80px] pointer-events-none" />
+
           <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
             <IonRefresherContent />
           </IonRefresher>
 
-          {/* Header */}
-          <div className="px-6 pt-14 pb-6 flex justify-between items-start">
+          {/* ========================================================== */}
+          {/* HEADER: Bienvenida y Botones Neumórficos */}
+          {/* ========================================================== */}
+          <div className="relative z-10 px-6 pt-14 pb-6 flex justify-between items-start animate-slide-up">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <LuScissors className="text-amber-500 text-xs" />
-                <span className="text-amber-500/70 text-xs tracking-[0.2em] uppercase font-semibold">
+                <div className="p-1 rounded-full bg-amber-500/10 border border-amber-500/30">
+                  <LuScissors className="text-amber-400 text-xs animate-pulse" />
+                </div>
+                <span className="text-amber-400/80 text-[11px] tracking-[0.2em] uppercase font-bold">
                   BarberSync
                 </span>
               </div>
-              <h1
-                className="text-3xl font-black text-white leading-tight"
-                style={{ fontFamily: "'Georgia', serif" }}
-              >
-                Hola,{" "}
-                <span className="text-amber-500 capitalize">
-                  {primerNombre}
-                </span>
+              <h1 className="text-3xl sm:text-4xl font-black text-white leading-tight font-serif">
+                Hola, <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 capitalize">{primerNombre}</span>
               </h1>
-              <p className="text-zinc-600 text-xs mt-0.5">
+              <p className="text-zinc-500 text-xs mt-1 font-medium">
                 {citas.length === 0
-                  ? "Sin reservas activas"
-                  : `${citas.length} ${
-                      citas.length === 1 ? "reserva" : "reservas"
-                    } activa${citas.length !== 1 ? "s" : ""}`}
+                  ? "Sin reservas activas en este momento"
+                  : `${citas.length} ${citas.length === 1 ? "reserva activa" : "reservas activas"}`}
               </p>
             </div>
-            {/* Boton de configuración usuario */}
-            <button
-              onClick={() => history.push("/perfil")}
-              className="flex items-center justify-center w-11 h-11 rounded-2xl border border-zinc-800 bg-zinc-900 text-zinc-400 active:text-amber-500 transition-colors"
-            >
-              <LuSettings className="text-xl" />
-            </button>
 
-            <button
-              onClick={handleLogout}
-              className="flex items-center justify-center w-11 h-11 rounded-2xl border border-zinc-800 bg-zinc-900 text-zinc-500 active:border-red-900 active:text-red-400 transition-colors"
-            >
-              <LuLogOut className="text-base" />
-            </button>
+            {/* Controles rápidos con elevación Soft UI */}
+            <div className="flex items-center gap-2.5">
+              <button
+                onClick={() => history.push("/perfil")}
+                aria-label="Perfil y Configuración"
+                className="flex items-center justify-center w-11 h-11 rounded-2xl border border-zinc-800/80 bg-[#121215] text-zinc-400 active:scale-95 active:text-amber-400 transition-all shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.02),inset_2px_2px_6px_rgba(0,0,0,0.8)]"
+              >
+                <LuSettings className="text-lg" />
+              </button>
+
+              <button
+                onClick={handleLogout}
+                aria-label="Cerrar sesión"
+                className="flex items-center justify-center w-11 h-11 rounded-2xl border border-zinc-800/80 bg-[#121215] text-zinc-500 active:scale-95 active:border-red-900/50 active:text-red-400 transition-all shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.02),inset_2px_2px_6px_rgba(0,0,0,0.8)]"
+              >
+                <LuLogOut className="text-lg" />
+              </button>
+            </div>
           </div>
 
-          {/* Main Content */}
-          <div className="flex-1 px-6 pb-32">
+          {/* ========================================================== */}
+          {/* CONTENIDO PRINCIPAL (Skeletons, Empty State o Citas) */}
+          {/* ========================================================== */}
+          <div className="relative z-10 flex-1 px-6 space-y-6">
             {cargando ? (
-              <div className="space-y-4">
-                <div
-                  className="w-full rounded-3xl bg-zinc-900 animate-pulse"
-                  style={{ height: "220px" }}
-                />
-                <div
-                  className="w-full rounded-2xl bg-zinc-900/60 animate-pulse"
-                  style={{ height: "80px" }}
-                />
-                <div
-                  className="w-full rounded-2xl bg-zinc-900/40 animate-pulse"
-                  style={{ height: "80px" }}
-                />
+              /* Skeletons Neumórficos */
+              <div className="space-y-4 animate-pulse">
+                <div className="w-full h-64 rounded-3xl bg-zinc-900/60 border border-white/5" />
+                <div className="w-full h-20 rounded-2xl bg-zinc-900/40 border border-white/5" />
+                <div className="w-full h-20 rounded-2xl bg-zinc-900/30 border border-white/5" />
               </div>
             ) : citas.length === 0 ? (
-              /* Estado vacío */
-              <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div
-                  className="w-20 h-20 rounded-3xl flex items-center justify-center mb-6 border border-zinc-800"
-                  style={{ background: "rgba(217,119,6,0.08)" }}
-                >
-                  <LuCalendarPlus className="text-amber-600 text-2xl" />
+              
+              /* ESTADO VACÍO (Glass Card + Soft UI Icon) */
+              <div className="glass-card p-10 flex flex-col items-center justify-center text-center my-6 animate-slide-up" style={{ animationDelay: "100ms" }}>
+                <div className="w-20 h-20 rounded-3xl flex items-center justify-center mb-6 border border-amber-500/20 bg-amber-500/10 shadow-[0_0_25px_rgba(245,158,11,0.15)]">
+                  <LuCalendarPlus className="text-amber-500 text-3xl animate-bounce" />
                 </div>
-                <h3
-                  className="text-xl font-black text-white mb-2"
-                  style={{ fontFamily: "'Georgia', serif" }}
-                >
-                  Sin citas próximas
+                <h3 className="text-2xl font-black text-white mb-2 font-serif">
+                  Tu agenda está libre
                 </h3>
-                <p className="text-zinc-600 text-sm max-w-xs leading-relaxed">
-                  Reserva tu turno ahora y asegura tu corte sin esperas ni
-                  filas.
+                <p className="text-zinc-400 text-sm max-w-xs leading-relaxed">
+                  Reserva tu turno ahora y asegura tu corte sin esperas, filas ni pérdidas de tiempo.
                 </p>
               </div>
+
             ) : (
               <>
-                {/* Próxima cita - Tarjeta premium */}
-                <div
-                  className="rounded-3xl overflow-hidden mb-5 relative"
-                  style={{
-                    background:
-                      "linear-gradient(145deg, #1a1209 0%, #0f0a04 100%)",
-                    border: "1px solid rgba(217,119,6,0.25)",
-                    boxShadow: "0 20px 60px rgba(217,119,6,0.12)",
-                  }}
-                >
-                  {/* Gold accent line top */}
-                  <div
-                    className="w-full h-0.5"
-                    style={{
-                      background:
-                        "linear-gradient(90deg, transparent, #d97706, transparent)",
-                    }}
-                  />
+                {/* ====================================================== */}
+                {/* TARJETA PRÓXIMA CITA (Glassmorphism Premium + Inset) */}
+                {/* ====================================================== */}
+                <div className="glass-card p-6 relative overflow-hidden border-amber-500/30 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_20px_rgba(245,158,11,0.1)] animate-slide-up" style={{ animationDelay: "100ms" }}>
+                  
+                  {/* Resplandor interno de la tarjeta */}
+                  <div className="absolute -right-12 -top-12 w-40 h-40 bg-amber-500/15 rounded-full blur-2xl pointer-events-none" />
+                  
+                  {/* Cabecera de Tarjeta: Etiqueta y Reloj */}
+                  <div className="flex justify-between items-center mb-6">
+                    <div className="inline-flex items-center gap-1.5 text-xs font-extrabold tracking-[0.15em] uppercase px-3.5 py-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 text-amber-400 shadow-sm">
+                      <LuSparkles className="text-xs animate-spin-slow" />
+                      <span>Próximo Turno</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-zinc-400 text-xs font-mono bg-black/40 px-3 py-1 rounded-full border border-white/5">
+                      <LuClock className="text-amber-500" />
+                      <span>Confirmada</span>
+                    </div>
+                  </div>
 
-                  <div className="p-6">
-                    <div className="flex justify-between items-center mb-5">
-                      <span
-                        className="text-xs font-bold tracking-[0.2em] uppercase px-3 py-1.5 rounded-full border"
-                        style={{
-                          color: "#d97706",
-                          borderColor: "rgba(217,119,6,0.3)",
-                          background: "rgba(217,119,6,0.08)",
-                        }}
-                      >
-                        Próxima cita
+                  {/* Fecha y Hora Principal */}
+                  <div className="mb-6">
+                    <p className="text-white text-xl sm:text-2xl font-black capitalize leading-tight mb-2 font-serif">
+                      {formatearFecha(proximaCita.inicio_esperado)}
+                    </p>
+                    <div className="flex flex-wrap items-baseline gap-3">
+                      <span className="text-4xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 tracking-tight">
+                        {formatearHora(proximaCita.inicio_esperado)}
                       </span>
-                      <LuClock className="text-zinc-600 text-base" />
+                      <div className="flex items-center gap-1.5 text-zinc-300 text-sm font-medium bg-zinc-800/80 px-3 py-1 rounded-xl border border-white/5">
+                        <LuUser className="text-amber-400 text-sm" />
+                        <span className="capitalize">{proximaCita.peluquero_nombre}</span>
+                      </div>
                     </div>
+                  </div>
 
-                    <div className="mb-5">
-                      <p
-                        className="text-white text-xl font-black capitalize leading-tight mb-1"
-                        style={{ fontFamily: "'Georgia', serif" }}
-                      >
-                        {formatearFecha(proximaCita.inicio_esperado)}
-                      </p>
-                      <div className="flex items-center gap-3">
-                        <span
-                          className="text-3xl font-black"
-                          style={{
-                            background:
-                              "linear-gradient(135deg, #f59e0b, #d97706)",
-                            WebkitBackgroundClip: "text",
-                            WebkitTextFillColor: "transparent",
-                          }}
-                        >
-                          {formatearHora(proximaCita.inicio_esperado)}
+                  {/* CÓDIGO DE TURNO (Hundido en Soft UI Inset para contraste digital) */}
+                  <div className="p-4 rounded-2xl bg-[#0d0d11] border border-zinc-800/80 shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.02),inset_2px_2px_6px_rgba(0,0,0,0.9)] flex items-center justify-between mb-6">
+                    <div>
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <LuHash className="text-amber-500 text-xs" />
+                        <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest font-mono">
+                          Código de Verificación
                         </span>
-                        <div className="flex items-center gap-1.5 text-zinc-500 text-xs">
-                          <LuUser className="text-xs" />
-                          <span className="capitalize">
-                            {proximaCita.peluquero_nombre}
-                          </span>
-                        </div>
                       </div>
+                      <p className="text-white text-2xl sm:text-3xl font-black tracking-[0.25em] font-mono drop-shadow-[0_0_8px_rgba(245,158,11,0.3)]">
+                        {proximaCita.codigo_verificacion}
+                      </p>
                     </div>
-
-                    {/* Código de turno */}
-                    <div
-                      className="rounded-2xl p-4 flex items-center justify-between"
-                      style={{
-                        background: "rgba(0,0,0,0.4)",
-                        border: "1px solid rgba(255,255,255,0.06)",
-                      }}
-                    >
-                      <div>
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <LuHash className="text-amber-600 text-xs" />
-                          <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">
-                            Código de turno
-                          </p>
-                        </div>
-                        <p
-                          className="text-white text-3xl font-black tracking-[0.25em]"
-                          style={{ fontFamily: "monospace" }}
-                        >
-                          {proximaCita.codigo_verificacion}
-                        </p>
-                      </div>
-                      <LuScissors className="text-zinc-700 text-3xl" />
+                    <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                      <LuScissors className="text-amber-400 text-2xl" />
                     </div>
+                  </div>
 
-                    {/* Reagendar */}
+                  {/* Botones de Acción (Neumorfismo Suave) */}
+                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-white/5">
                     <button
-                      onClick={() =>
-                        history.push(`/reagendar`, { cita: proximaCita })
-                      }
-                      className="flex-1 flex items-center justify-center gap-2 rounded-2xl text-amber-500 text-xs font-bold uppercase tracking-wider border border-amber-900/50 bg-amber-900/10 active:bg-amber-900/30 transition-colors"
-                      style={{ height: "44px" }}
+                      onClick={() => history.push(`/reagendar`, { cita: proximaCita })}
+                      className="flex items-center justify-center gap-2 h-12 rounded-2xl text-amber-400 text-xs font-bold uppercase tracking-wider border border-amber-500/30 bg-amber-500/10 active:bg-amber-500/20 active:scale-[0.98] transition-all shadow-md"
                     >
-                      <LuCalendarClock className="text-sm" />
-                      Reagendar
+                      <LuCalendarClock className="text-base" />
+                      <span>Reagendar</span>
                     </button>
 
-                    {/* Cancelar */}
                     <button
                       onClick={() => handleCancelar(proximaCita.id)}
-                      className="w-full mt-4 flex items-center justify-center gap-2 rounded-2xl text-red-400/80 text-xs font-bold uppercase tracking-wider border border-red-900/30 active:bg-red-950/30 transition-colors"
-                      style={{ height: "44px" }}
+                      className="flex items-center justify-center gap-2 h-12 rounded-2xl text-rose-400 text-xs font-bold uppercase tracking-wider border border-rose-500/20 bg-rose-500/10 active:bg-rose-500/20 active:scale-[0.98] transition-all shadow-md"
                     >
-                      <LuTrash2 className="text-sm" />
-                      Cancelar cita
+                      <LuTrash2 className="text-base" />
+                      <span>Cancelar</span>
                     </button>
                   </div>
                 </div>
 
-                {/* Citas futuras */}
+                {/* ====================================================== */}
+                {/* CITAS FUTURAS (Lista en Glass Pills) */}
+                {/* ====================================================== */}
                 {citasFuturas.length > 0 && (
-                  <div>
-                    <div className="flex items-center gap-2 mb-4">
-                      <LuCalendarDays className="text-amber-600 text-sm" />
-                      <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-widest">
-                        Próximas reservas
+                  <div className="space-y-3 pt-2 animate-slide-up" style={{ animationDelay: "200ms" }}>
+                    <div className="flex items-center gap-2 px-1">
+                      <LuCalendarDays className="text-amber-500 text-base" />
+                      <h3 className="text-xs font-extrabold text-zinc-400 uppercase tracking-widest">
+                        Otras reservas programadas
                       </h3>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-2.5">
                       {citasFuturas.map((cita) => (
                         <div
                           key={cita.id}
-                          className="flex items-center justify-between p-4 rounded-2xl"
-                          style={{
-                            background: "rgba(255,255,255,0.03)",
-                            border: "1px solid rgba(255,255,255,0.06)",
-                          }}
+                          className="flex items-center justify-between p-4 rounded-2xl bg-zinc-900/40 backdrop-blur-md border border-white/5 shadow-lg transition-all hover:border-white/10"
                         >
-                          <div className="flex items-center gap-4">
-                            <div
-                              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                              style={{ background: "rgba(217,119,6,0.1)" }}
-                            >
-                              <LuScissors className="text-amber-600 text-sm" />
+                          <div className="flex items-center gap-3.5">
+                            <div className="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center flex-shrink-0">
+                              <LuScissors className="text-amber-400 text-base" />
                             </div>
                             <div>
                               <p className="text-white text-sm font-bold capitalize">
                                 {formatearFechaCorta(cita.inicio_esperado)}
                               </p>
-                              <p className="text-zinc-600 text-xs mt-0.5 flex items-center gap-1">
-                                <LuUser className="text-xs" />
-                                {cita.peluquero_nombre}
+                              <p className="text-zinc-400 text-xs mt-0.5 flex items-center gap-1 font-medium">
+                                <LuUser className="text-amber-500/80 text-xs" />
+                                <span>{cita.peluquero_nombre}</span>
                               </p>
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-3">
-                            <span
-                              className="text-xs font-black tracking-wider px-2 py-1 rounded-lg"
-                              style={{
-                                fontFamily: "monospace",
-                                color: "#d97706",
-                                background: "rgba(217,119,6,0.1)",
-                              }}
-                            >
+                          <div className="flex items-center gap-2 sm:gap-3">
+                            <span className="text-xs font-black tracking-wider px-2.5 py-1.5 rounded-lg font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20">
                               {cita.codigo_verificacion}
                             </span>
 
                             <button
-                              onClick={() =>
-                                history.push(`/reagendar`, { cita })
-                              }
-                              className="w-8 h-8 flex items-center justify-center rounded-xl text-amber-600 active:text-amber-400 active:bg-amber-950/30 transition-colors"
+                              onClick={() => history.push(`/reagendar`, { cita })}
+                              aria-label="Reagendar"
+                              className="w-9 h-9 flex items-center justify-center rounded-xl bg-zinc-800/80 text-amber-400 active:scale-95 active:bg-zinc-700 transition-all"
                             >
-                              <LuCalendarClock className="text-sm" />
+                              <LuCalendarClock className="text-base" />
                             </button>
 
                             <button
                               onClick={() => handleCancelar(cita.id)}
-                              className="w-8 h-8 flex items-center justify-center rounded-xl text-zinc-600 active:text-red-400 active:bg-red-950/30 transition-colors"
+                              aria-label="Cancelar"
+                              className="w-9 h-9 flex items-center justify-center rounded-xl bg-zinc-800/80 text-rose-400 active:scale-95 active:bg-rose-950/40 transition-all"
                             >
-                              <LuTrash2 className="text-sm" />
+                              <LuTrash2 className="text-base" />
                             </button>
                           </div>
                         </div>
@@ -412,29 +354,24 @@ const DashboardCliente: React.FC = () => {
             )}
           </div>
 
-          {/* Bottom CTA — Fijo */}
-          <div
-            className="fixed bottom-0 left-0 right-0 px-6 pb-8 pt-4"
-            style={{
-              background: "linear-gradient(to top, #0a0a0a 70%, transparent)",
-            }}
-          >
+          {/* ========================================================== */}
+          {/* BOTTOM CTA FIJO (Barra de Vidrio Esmerilado Difuminado) */}
+          {/* ========================================================== */}
+          <div className="fixed bottom-0 left-0 right-0 p-6 pt-8 bg-gradient-to-t from-[#0a0a0c] via-[#0a0a0c]/90 to-transparent backdrop-blur-sm z-30">
             <button
               onClick={() => history.replace("/agendar")}
               disabled={!ctaHabilitado}
-              className="w-full flex items-center justify-between px-6 rounded-2xl font-bold text-black active:scale-95 transition-transform"
-              style={{
-                height: "58px",
-                background: "linear-gradient(135deg, #f59e0b, #d97706)",
-                boxShadow: "0 8px 32px rgba(217,119,6,0.4)",
-              }}
+              className="soft-btn-primary h-14 shadow-2xl"
             >
-              <span className="text-sm tracking-wide">Agendar nuevo corte</span>
-              <div className="bg-black/15 rounded-xl p-1.5">
+              <span className="text-sm font-extrabold tracking-wider uppercase">
+                Agendar nuevo corte
+              </span>
+              <div className="bg-black/20 rounded-xl p-2 transition-transform duration-200 group-hover:scale-105">
                 <LuCalendarPlus className="text-lg" />
               </div>
             </button>
           </div>
+
         </div>
       </IonContent>
     </IonPage>

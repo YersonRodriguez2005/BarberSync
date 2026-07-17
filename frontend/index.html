@@ -1,12 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es" class="dark">
   <head>
     <meta charset="utf-8" />
-    <title>Ionic App</title>
+    <title>BarberSync | Agendamiento Premium</title>
     
     <base href="/" />
     
-    <meta name="color-scheme" content="light dark" />
+    <!-- Forzamos el esquema de color a oscuro para evitar el destello blanco inicial -->
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0a0a0c" />
+    
+    <!-- Meta etiquetas recomendadas para Ionic Framework -->
     <meta
       name="viewport"
       content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
@@ -14,16 +18,24 @@
     <meta name="format-detection" content="telephone=no" />
     <meta name="msapplication-tap-highlight" content="no" />
     
-    <link rel="manifest" href="/manifest.json" />
+    <!-- SEO y Open Graph básico -->
+    <meta name="description" content="Tu tiempo es sagrado. Agenda tus cortes de cabello sin filas ni esperas con BarberSync." />
+    <meta property="og:title" content="BarberSync | Premium Grooming" />
+    <meta property="og:description" content="Aplicación de agendamiento exclusivo para barbería." />
+    <meta property="og:type" content="website" />
     
+    <!-- Manifiesto PWA e Íconos -->
+    <link rel="manifest" href="/manifest.json" />
     <link rel="shortcut icon" type="image/png" href="/favicon.png" />
     
-    <!-- add to homescreen for ios -->
+    <!-- Configuración Add to Homescreen (iOS) -->
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="Ionic App" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-title" content="BarberSync" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
   </head>
-  <body>
+  
+  <body class="bg-[#0a0a0c] text-zinc-100">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

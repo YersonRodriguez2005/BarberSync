@@ -1,3 +1,134 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ==========================================================================
+   1. FORZAR TEMA OSCURO GLOBAL EN IONIC & WEB COMPONENTS
+   ========================================================================== */
+:root, body, ion-app, ion-content, ion-page, ion-header, ion-toolbar, ion-modal, ion-alert {
+  /* Paleta base oscura inmutable para todo el ecosistema Ionic */
+  --ion-background-color: #0a0a0c !important;
+  --ion-background-color-rgb: 10, 10, 12 !important;
+  
+  --ion-text-color: #f4f4f5 !important;
+  --ion-text-color-rgb: 244, 244, 245 !important;
+
+  /* Colores de superficies nativas (tarjetas, listas, menús emergentes) */
+  --ion-toolbar-background: #121215 !important;
+  --ion-toolbar-color: #ffffff !important;
+  --ion-item-background: #121215 !important;
+  --ion-item-color: #f4f4f5 !important;
+  --ion-card-background: #15151a !important;
+  --ion-overlay-background-color: rgba(10, 10, 12, 0.85) !important;
+
+  /* Escala de grises progresiva (Step Colors de Ionic para modo oscuro) */
+  --ion-color-step-50: #161619;
+  --ion-color-step-100: #222226;
+  --ion-color-step-150: #2e2e33;
+  --ion-color-step-200: #3a3a40;
+  --ion-color-step-250: #46464d;
+  --ion-color-step-300: #525259;
+  --ion-color-step-350: #5e5e66;
+  --ion-color-step-400: #6a6a73;
+  --ion-color-step-450: #767680;
+  --ion-color-step-500: #82828c;
+  --ion-color-step-550: #8e8e99;
+  --ion-color-step-600: #9a9aa6;
+  --ion-color-step-650: #a6a6b3;
+  --ion-color-step-700: #b2b2bf;
+  --ion-color-step-750: #bebecc;
+  --ion-color-step-800: #cacad9;
+  --ion-color-step-850: #d6d6e5;
+  --ion-color-step-900: #e2e2f2;
+  --ion-color-step-950: #eeeeff;
+
+  /* Le indica al navegador que renderice barras de scroll y controles en modo oscuro */
+  color-scheme: dark;
+}
+
+/* ==========================================================================
+   2. ESTILOS BASE DE TAILWIND & IONIC
+   ========================================================================== */
+@layer base {
+  body, ion-app, ion-content {
+    @apply bg-[#0a0a0c] text-zinc-100 font-sans antialiased selection:bg-amber-500/30 selection:text-amber-300;
+  }
+
+  /* Evitar destellos en iOS/Android al hacer scroll o transiciones de página */
+  ion-content::part(background) {
+    background: #0a0a0c !important;
+  }
+}
+
+/* ==========================================================================
+   3. SISTEMA DE DISEÑO: GLASSMORPHISM & SOFT UI OSCURO (NEUMORFISMO)
+   ========================================================================== */
+@layer components {
+  /* --- TARJETA DE VIDRIO (Glassmorphism Oscuro) --- */
+  .glass-card {
+    @apply bg-zinc-900/60 backdrop-blur-md border border-white/10 rounded-3xl shadow-2xl transition-all duration-300;
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.8), 0 0 15px -3px rgba(245, 158, 11, 0.08);
+  }
+
+  /* --- INPUT NEUMÓRFICO (Soft UI Inset Dark) --- */
+  .soft-input-container {
+    @apply flex items-center gap-3.5 px-4 rounded-2xl border border-zinc-800/80 bg-[#121215]/90 transition-all duration-200;
+    box-shadow: inset -2px -2px 5px rgba(255, 255, 255, 0.02), inset 2px 2px 6px rgba(0, 0, 0, 0.8);
+  }
+  
+  .soft-input-container:focus-within {
+    @apply border-amber-500/50 bg-[#15151a];
+    box-shadow: inset -2px -2px 5px rgba(255, 255, 255, 0.03), inset 2px 2px 6px rgba(0, 0, 0, 0.9), 0 0 12px rgba(245, 158, 11, 0.15);
+  }
+
+  /* --- BOTÓN NEUMÓRFICO PRINCIPAL (Soft UI Elevation) --- */
+  .soft-btn-primary {
+    @apply relative w-full flex items-center justify-between px-6 rounded-2xl font-bold text-black overflow-hidden transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
+    background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+    box-shadow: -4px -4px 10px rgba(255, 255, 255, 0.08), 4px 4px 15px rgba(0, 0, 0, 0.8), 0 8px 25px -5px rgba(217, 119, 6, 0.4);
+  }
+
+  .soft-btn-primary:hover:not(:disabled) {
+    @apply brightness-105;
+    box-shadow: -4px -4px 12px rgba(255, 255, 255, 0.12), 4px 4px 18px rgba(0, 0, 0, 0.9), 0 10px 30px -5px rgba(217, 119, 6, 0.5);
+  }
+
+  /* --- BOTÓN SECUNDARIO (Glass Pill) --- */
+  .glass-pill-btn {
+    @apply flex items-center justify-center gap-2 px-5 py-3 rounded-2xl border border-zinc-800/80 bg-zinc-900/40 backdrop-blur-sm text-zinc-400 text-sm font-medium transition-all duration-200 active:scale-[0.98] active:bg-zinc-800/60 hover:text-zinc-200 hover:border-zinc-700;
+    box-shadow: -3px -3px 8px rgba(255, 255, 255, 0.01), 3px 3px 10px rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* ==========================================================================
+   4. ANIMACIONES POR HARDWARE (GPU Accelerated)
+   ========================================================================== */
+@keyframes slideUpFade {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale3d(1, 1, 1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale3d(1.05, 1.05, 1);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-glow-pulse {
+  animation: pulseGlow 4s ease-in-out infinite;
+}
